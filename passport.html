@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pasaporte ng Pilipinas</title>
+  <link rel="stylesheet" href="passport.css">
+</head>
+<body>
+  <div class="passport">
+    <img src="id_bg.png" alt="Background" class="bg">
+    <img src="id_overlay.png" alt="Overlay" class="overlay">
+    <img src="id_bleed_overlay.png" alt="Bleed Overlay" class="bleed-overlay">
+    <img src="https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?semt=ais_hybrid&w=740" class="ghost-photo" alt="Watermark Photo">
+
+    <div class="header-row">
+      <img src="ph_flag.png" class="icon" alt="PH Flag">
+      <h1>REPUBLIKA NG PILIPINAS | REPUBLIC OF THE PHILIPPINES</h1>
+      <img src="chip_icon.png" class="icon" alt="ePassport Chip">
+    </div>
+
+    <div class="meta-row" id="passport-meta"></div>
+
+    <div class="content">
+      <img src="https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?semt=ais_hybrid&w=740" class="photo" alt="Passport Photo">
+      <div class="info" id="passport-info"></div>
+    </div>
+
+    <div class="mrz" id="passport-mrz"></div>
+  </div>
+
+  <script>
+    const passportData = {
+      lastName: "Dela Cruz",
+      firstName: "Maria Isabela",
+      middleName: "Santos",
+      nationality: "Pilipino",
+      birthDate: "1980-03-16", // YYYY-MM-DD
+      birthPlace: "Manila",
+      sex: "F",
+      dateIssued: "2016-06-27",
+      dateExpiry: "2021-06-26",
+      passportNo: "P0000000A",
+      issuingAuthority: "DFA MANILA",
+      passportType: "P",
+      countryCode: "PHL"
+    };
+
+    const sanitize = str => str.toUpperCase().replace(/ /g, '<');
+    const formatDateMRZ = (dateStr) => {
+      const date = new Date(dateStr);
+      const year = date.getFullYear().toString().slice(2);
+      const month = `${date.getMonth() + 1}`.padStart(2, '0');
+      const day = `${date.getDate()}`.padStart(2, '0');
+      return `${year}${month}${day}`;
+    };
+
+    function computeCheckDigit(input) {
+      const weights = [7, 3, 1];
+      const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<";
+      let sum = 0;
+      for (let i = 0; i < input.length; i++) {
+        const char = input[i].toUpperCase();
+        const value = chars.indexOf(char);
+        const weight = weights[i % 3];
+        sum += value * weight;
+      }
+      return sum % 10;
+    }
+
+    // META
+    document.getElementById('passport-meta').innerHTML = `
+      <p><strong>Uri / Type:</strong> ${passportData.passportType}</p>
+      <p><strong>Kodigo ng Bansa / Country Code:</strong> ${passportData.countryCode}</p>
+      <p><strong>Pasaporte Blg. / Passport No.:</strong> ${passportData.passportNo}</p>
+    `;
+
+    // INFO
+    document.getElementById('passport-info').innerHTML = `
+      <p><strong>Apelyido:</strong> ${passportData.lastName}</p>
+      <p><strong>Nasyonalidad:</strong> ${passportData.nationality}</p>
+
+      <p><strong>Pangalan:</strong> ${passportData.firstName}</p>
+      <p></p>
+
+      <p><strong>Gitnang Apelyido:</strong> ${passportData.middleName}</p>
+      <p></p>
+
+      <p><strong>Araw ng Kapanganakan:</strong> ${passportData.birthDate}</p>
+      <p><strong>Lugar ng Kapanganakan:</strong> ${passportData.birthPlace}</p>
+
+      <p><strong>Kasarian:</strong> ${passportData.sex}</p>
+      <p></p>
+
+      <p><strong>Petsa ng Pagkakaloob:</strong> ${passportData.dateIssued}</p>
+      <p><strong>Petsa ng Pagwawakas:</strong> ${passportData.dateExpiry}</p>
+
+      <p><strong>Numero ng Pasaporte:</strong> ${passportData.passportNo}</p>
+      <p><strong>Awtoridad:</strong> ${passportData.issuingAuthority}</p>
+    `;
+
+    // MRZ
+    const dob = formatDateMRZ(passportData.birthDate);
+    const doe = formatDateMRZ(passportData.dateExpiry);
+    const passportNo = passportData.passportNo;
+
+    const passportCD = computeCheckDigit(passportNo);
+    const dobCD = computeCheckDigit(dob);
+    const doeCD = computeCheckDigit(doe);
+    const finalInput = `${passportNo}${passportCD}${passportData.countryCode}${dob}${dobCD}${passportData.sex}${doe}${doeCD}<<<<<<<<<<<<<<`;
+    const finalCD = computeCheckDigit(finalInput);
+
+    const mrzLine1 = `P<${passportData.countryCode}${sanitize(passportData.lastName)}<<${sanitize(passportData.firstName.split(' ')[0])}`.padEnd(44, '<');
+    const mrzLine2 = `${passportNo}${passportCD}${passportData.countryCode}${dob}${dobCD}${passportData.sex}${doe}${doeCD}<<<<<<<<<<<<<<${finalCD}`.padEnd(44, '<');
+
+    document.getElementById('passport-mrz').innerHTML = `
+      <div>${mrzLine1}</div>
+      <div>${mrzLine2}</div>
+    `;
+  </script>
+</body>
+</html>
